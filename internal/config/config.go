@@ -9,7 +9,7 @@ type Config struct {
 	Metrics   MetricsConfig				`yaml:"metrics"`
 	Upstreams map[string]UpstreamConfig `yaml:"upstreams"`
 	Routes    []RouteConfig				`yaml:"routes"`
-	Fallback  *FallbackConfig			`yaml"fallback"`
+	Fallback  *FallbackConfig			`yaml:"fallback"`
 }
 
 type ServerConfig struct {
@@ -21,7 +21,7 @@ type ServerConfig struct {
 }
 
 type MetricsConfig struct {
-	Listen string `yaml"listen"`
+	Listen string `yaml:"listen"`
 }
 
 type UpstreamConfig struct {
