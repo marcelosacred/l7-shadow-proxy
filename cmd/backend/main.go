@@ -55,7 +55,7 @@ func main() {
 			Headers: r.Header,
 		})
 
-		logger.Info("request processed",
+		logger.Debug("request processed",
 			"service", *name,
 			"delay", sleep,
 			"status", http.StatusOK,
