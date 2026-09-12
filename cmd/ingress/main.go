@@ -32,6 +32,13 @@ func main() {
 		Rewrite: func (pr *httputil.ProxyRequest)  {
 			pr.SetURL(target)
 		},
+		ErrorHandler: func(w http.ResponseWriter, r *http.Request, err error) {
+			logger.Error("upstream unreachable", "path", r.URL.Path, "method", r.Method, "err", err)
+			
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusBadGateway)
+			_, _ = w.Write([]byte(`{"error":"upstream unreachable"}`))
+		},
 	}
 
 	mux := http.NewServeMux()
