@@ -1,12 +1,15 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"log/slog"
+	"net"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
 	"os"
+	"time"
 )
 
 func main() {
@@ -28,15 +31,38 @@ func main() {
 		os.Exit(1)
 	}
 
+	transport := &http.Transport{
+		DialContext: (&net.Dialer{
+			Timeout: 3 * time.Second,
+		}).DialContext,
+		ResponseHeaderTimeout: 3 * time.Second,
+		MaxConnsPerHost: 256,
+		MaxIdleConnsPerHost: 64,
+		IdleConnTimeout: 90 * time.Second,
+	}
+
 	proxy := &httputil.ReverseProxy{
 		Rewrite: func (pr *httputil.ProxyRequest)  {
 			pr.SetURL(target)
 		},
+		Transport: transport,
 		ErrorHandler: func(w http.ResponseWriter, r *http.Request, err error) {
-			logger.Error("upstream unreachable", "path", r.URL.Path, "method", r.Method, "err", err)
-			
+			status := http.StatusBadGateway // 502 (по умолчанию)
+
+			var netErr net.Error
+			if errors.As(err, &netErr) && netErr.Timeout() {
+				status = http.StatusGatewayTimeout // 504
+			}
+
+			logger.Error("upstream unreachable",
+				"path", r.URL.Path,
+				"method", r.Method,
+				"status", status,
+				"err", err,
+			)
+
 			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusBadGateway)
+			w.WriteHeader(status)
 			_, _ = w.Write([]byte(`{"error":"upstream unreachable"}`))
 		},
 	}
