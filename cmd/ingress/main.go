@@ -16,14 +16,16 @@ func main() {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 	logger.Info("l7-shadow-proxy starting...")
 
+	const backendURL = "http://localhost:8081"
+
 	// ---------------------------------
 	listen := flag.String("listen", ":8080", "adress to listen on")
-
+	//config := flag.String("config", "configs/example.yaml", "path to config")
 
 	flag.Parse()
 	// ---------------------------------
 
-	const backendURL = "http://localhost:8081"
+
 
 	target, err := url.Parse(backendURL)
 	if err != nil {
